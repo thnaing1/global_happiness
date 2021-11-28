@@ -5,12 +5,6 @@
 # The goal of this analysis is to determine the factors that correlate to national happiness. I retreived this data from Kaggle.
 # I am going to download the data set. Retrieve it, clean it and see if I can find a correlation between various factors -like income for instance- and happiness.
 
-# ## Downloading the Dataset
-# 
-# **TODO** - add some explanation here
-
-# In[130]:
-
 
 import seaborn as sns #seaborn the python graphing module for more advanced graphing
 import matplotlib #matplotlib the python graphing module for more basic graphing
@@ -25,69 +19,24 @@ matplotlib.rcParams['figure.figsize'] = (12, 5)
 matplotlib.rcParams['figure.facecolor'] = '#00000000' #short cuts to customize the look of plots for graphing
 
 
-# In[41]:
-
-
 get_ipython().system('pip install jovian opendatasets --upgrade --quiet')
 
-
-# In[42]:
-
-
 dataset_url = 'https://www.kaggle.com/unsdsn/world-happiness' #the website url I am downloading from
-
-
-# In[43]:
-
 
 import opendatasets as od   #import and download the dataset
 od.download(dataset_url)
 
-
 # The dataset has been downloaded and extracted.
-
-# In[44]:
-
-
-pwd
-
-
-# In[45]:
-
 
 # select directory 
 data_dir = './world-happiness' 
 
-
-# In[46]:
-
-
 import os
 os.listdir(data_dir) #files in the directory
 
-
-# Let us save and upload our work to Jovian before continuing.
-
-# In[47]:
-
-
 project_name = "thanzin-zerotopandas-course-project-happiness-1" # my project name
 
-
-# In[48]:
-
-
-get_ipython().system('pip install jovian --upgrade -q')
-
-
-# In[49]:
-
-
 import jovian
-
-
-# In[50]:
-
 
 import pandas as pd
 happy_raw_df = pd.read_csv('world-happiness/2019.csv') #read the 2019 csv file from the folder
@@ -102,52 +51,25 @@ happy_raw_df
 # **Metrics**: The columns after the happiness score are factors that estimate how much each variable contribute to the overall score for
 # that particular country compared to a hypothetical country that has the lowest score in each of the 6 factors. In other words, it tells you how much do each of these six factors are positively impacting the the average happiness score in each country.
 
-# In[51]:
-
-
 happy_raw_df.shape #we see that the dataset has 156 rows and 9 columns
-
-
-# In[52]:
-
 
 happy_raw_df.isnull().values.any() #check for any missing values in the dataframe; there are none and the dataset is complete
 
-
 # #### Note: I will rename 'Perceptions of corruption' as 'Absence of Corruption' since that is what it is referred to as in the kaggle description. Additionally, it can clear up confusion as a higher score actually means that the public perceive there to be less corruption and that is contributing to the happiness score; additionally I will rename the score as happiness to make it more clear
-
-# In[53]:
-
 
 happy_raw_df.rename(columns= {'Perceptions of corruption': 'Absence of Corruption', 'Score':'Happiness'}, inplace= True)
 
 happy_raw_df
 
-
 # ### Let us find the max and min of each column to see if there are any data value too high or low to make sense. For example, negative values or a metric score that is higher than the overall score
-
-# In[54]:
-
 
 happy_raw_df.max(axis= 0)   #the highest value of each column
 
-
-# In[55]:
-
-
 happy_raw_df.min(axis= 0)    #the lowest value of each column
-
 
 # #### Note: for the min, the zeros mean that in each column, there is at lease one country where a certain metric contributes nothing to the overall happiness score of a country
 
-# In[56]:
-
-
 happy_raw_df.describe() #the descriptive statistics of the dataset
-
-
-# In[57]:
-
 
 #filter out of indices(rows) that feature a zero value in each column
 zero_metric = happy_raw_df[(happy_raw_df['GDP per capita'] == 0)|
@@ -161,35 +83,20 @@ zero_metric
 
 # ### It's very unlikely that any metric contributes nothing to the overall score. Zero values can be explained by standard deviation since the actual numbers can be a little higher or lower. For this reason, I will turn all 0.00 values to NaN to make the dataset slighty more accurate.
 
-# In[58]:
-
-
 happy_df = happy_raw_df.replace(to_replace= 0, value= np.nan) #replace all zeros in the dataframe with NaN
 happy_df.describe()
-
 
 # ### There are no longer zeroes in the minimum row
 
 # # Question 1: Many people believe that the GDP per capita of a country is the main contributing factor to overall well being. How true is this? 
 
-# In[59]:
-
-
 sns.scatterplot(x=happy_df['GDP per capita'] ,y= happy_df['Happiness']); #scatter plot of gdp per capita against happiness
 
-
-# In[60]:
-
-
 sns.regplot(x=happy_df['GDP per capita'] ,y= happy_df['Happiness']); #the same plot but with the best fit line
-
 
 # ### Let us apply the Pearson's correlation coefficient to determine which variables are strongly correlated with each other.
 
 # ### However before we apply the correlation coefficient we must first make sure that the data nomially distributed if I want to use Pearson's coefficient
-
-# In[141]:
-
 
 sm.qqplot(np.random.normal(0,1, 1000), line ='s'); #this is a plot of a quantile v quantile plot which is a plot that measures 
 #if a series a normally distributed
@@ -197,32 +104,19 @@ sm.qqplot(np.random.normal(0,1, 1000), line ='s'); #this is a plot of a quantile
 
 #line = 's' means that the standardized line is applied
 
-
 # ## The quantiles of the input array is plotted against the quantile of a theoretical normal distribution to see whether the input array is normally distributed
-
-# In[117]:
-
 
 sm.qqplot(happy_df['GDP per capita'], line ='45'); #qq plot of our gdp per capita array, which is not a normal distribution
 
 #I cannot use line = 's' in this case because the points are too far from a normal distribution and the line will not appear. 
 #However, I placed the 45 degree line there to demonstrate where the blue dots should be if the series was normally distributed
 
-
-# In[115]:
-
-
 sm.qqplot(happy_df['Happiness'], line ='s'); #happiness metric is a normal distribution
-
 
 # ## Since both variables have to be normally distributed. Using Pearson's correlation coefficient is not appropriate. Instead I should use Spearman's correlation coefficient since that does not require both variables to be normally distributed.
 
-# In[119]:
-
-
 corr_spearman = happy_df.corr(method = 'spearman') #apply spearman's correlation coefficient to the dataframe
 corr_spearman
-
 
 # ### The correlation value between gdp per capita and happiness is a strong one at approximately p = 0.82. This confirms the relationship we see in the scatter graph is valid
 
@@ -230,54 +124,27 @@ corr_spearman
 
 # # Question 2: Which metric overall contribute the most to the happiness score of a nation on average?
 
-# In[62]:
-
-
 happy_df
-
-
-# In[63]:
-
 
 happy_df.describe() #descriptive stats
 
-
 # ## It seems that on average(mean) social support contribute most to well being. Let us take a look at it in more detail
-
-# In[85]:
-
 
 sns.scatterplot(x=happy_df['Social support'] ,y= happy_df['Happiness']); #scatter plot
 
-
-# In[86]:
-
-
 sns.regplot(x=happy_df['Social support'] ,y= happy_df['Happiness']); #best fit line
 
-
-# In[120]:
-
-
 corr_spearman
-
 
 # ## At p= 0.81 there is strong correlation. From this we know that social support has a strong affect on happiness.
 
 # ## Even though social support contributes most of well being, it has the same correlation or lower compared to the gdp per capita. The reason this maybe the case is because social support is more consistantly higher.
 
-# In[139]:
-
-
 happy_df.describe()
-
 
 # ### From this we can see that the lowest value for social support is 0.38 but for gdp per capita it is 0.026
 
 # # Question 3: Specifically how does the United States fare compared to the world average?
-
-# In[65]:
-
 
 us_filt = happy_df[happy_raw_df['Country or region'] == 'United States'] #filter out all countries other than the US 
 #create new dataframe 
@@ -288,15 +155,7 @@ cols = cols[-1:] + cols[:-1]    #so that you can use indexing to put 'region' co
 
 us_filt = us_filt[cols] #apply indexing to dataframe
 
-
-# In[66]:
-
-
 us_filt #data frame for US only
-
-
-# In[77]:
-
 
 plt.xticks(rotation=90) #90 degree ticks
 plt.title('United States') #title
@@ -304,11 +163,7 @@ plt.xlabel('Metrics') #xlabel
 plt.ylabel('Metric Values') #ylabel
 sns.barplot(data = us_filt); #barplot of the dataset
 
-
 # ## This is a barplot showing the distribution of metrics for the US. It seems that GDP per capita, social Support, and life expectancy matter most to well being. While absence of corruption does very little. How does this compare to other nations?
-
-# In[68]:
-
 
 #calculate the mean of all columns assign each value to a variable
 global_score = happy_df['Happiness'].mean(axis = 0)
@@ -339,22 +194,13 @@ us_world_compare_df = pd.concat([global_filt,us_filt]) #combine the global and u
 us_world_compare_df
 #I cannot utilize current short form of the combined dataframe shown below
 
-
-# In[69]:
-
-
 #I must first convert the short-form dataframe to a long-form dataframe so I can create a barplot for it
 us_world_compare_longform_df = pd.melt(frame = us_world_compare_df, id_vars= 'Region', var_name= 'Metrics', value_name= "Values" )
 us_world_compare_longform_df
 
-
-# In[70]:
-
-
 plt.xticks(rotation=90) #90 degree ticks
 sns.barplot(data = us_world_compare_longform_df, x= 'Metrics', y= 'Values', hue = 'Region');
 #barplot comparing the metrics of the US versus the global average
-
 
 # ### We can infer several conclusions from the data. Firstly, on average Americans are happier than the rest of the world
 
@@ -366,42 +212,25 @@ sns.barplot(data = us_world_compare_longform_df, x= 'Metrics', y= 'Values', hue 
 
 # # Question 4: Is gdp per capita correlated with life expectency?
 
-# In[78]:
-
-
 sns.scatterplot(x=happy_df['GDP per capita'] ,y= happy_df['Healthy life expectancy']); #scatterplot
-
-
-# In[80]:
-
 
 sns.regplot(x=happy_df['GDP per capita'] ,y= happy_df['Healthy life expectancy']); #the line of best fit
 
-
-# In[135]:
-
-
 corr_spearman
-
 
 # ### At a coefficient of p= 0.85, it appears that GDP per capita is an even stronger predictor of life expectancy than it is a predictor of happiness
 
 # # Question 5: What other relationships can we predict from the data?
 
-# In[140]:
-
-
 sns.heatmap(corr_spearman) #create a heatmap based on spearman's correlation coefficients
 #this shows the complete map of all correlation coefficients for every combination of all variables
 plt.show()
-
 
 # ## Interestingly, gdp per capita has an even stronger correlation with health than happiness
 # 
 # ## Freedom, generosity, and absence of corruption is not strongly correlated with happiness or any other metric. They seem to be independent variables. Therefore they are not important to well being. It least for most countries.
 # 
 # ## That being said. The relationship between happiness and freedom is not insignificant. Countries may gain a small boost to happiness by creating a more free society. 
-# 
 # 
 # ## Given that the social support is not something that a government can control and gdp per capita influences health, it suggest that govenments should do all it can to increase the collective wealth of a society in term of gdp per person
 
