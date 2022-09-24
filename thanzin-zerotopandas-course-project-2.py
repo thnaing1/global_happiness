@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Factors that contribute to National Happiness
+# Factors that contribute to National Happiness
 # The goal of this analysis is to determine the factors that correlate to national happiness. I retreived this data from Kaggle.
 # I am going to download the data set. Retrieve it, clean it and see if I can find a correlation between various factors -like income for instance- and happiness.
 
-
+#import packages
 import seaborn as sns #seaborn the python graphing module for more advanced graphing
 import matplotlib #matplotlib the python graphing module for more basic graphing
 import matplotlib.pyplot as plt #matplotlib the python graphing module for more basic graphing
@@ -43,7 +43,7 @@ happy_raw_df = pd.read_csv('world-happiness/2019.csv') #read the 2019 csv file f
 happy_raw_df
 
 
-# # This dataset represents happiness rankings among countries 
+# This dataset represents happiness rankings among countries 
 # **Question**: How are countries ranked by happiness?
 # 
 # **Methodology**: A method called a Cantril ladder is being used here. The way it works is that it asks respondents to rate their own current lives on a scale of 10 to 0, with the best possible life being 10 and the worst possible life being 0. The countries are then ranked in descending order based on the average score. 
@@ -54,20 +54,26 @@ happy_raw_df
 happy_raw_df.shape #we see that the dataset has 156 rows and 9 columns
 
 happy_raw_df.isnull().values.any() #check for any missing values in the dataframe; there are none and the dataset is complete
+##########################
 
-# #### Note: I will rename 'Perceptions of corruption' as 'Absence of Corruption' since that is what it is referred to as in the kaggle description. Additionally, it can clear up confusion as a higher score actually means that the public perceive there to be less corruption and that is contributing to the happiness score; additionally I will rename the score as happiness to make it more clear
+
+# Note: I will rename 'Perceptions of corruption' as 'Absence of Corruption' since that is what it is referred to as in the kaggle description. Additionally, it can clear up confusion as a higher score actually means that the public perceive there to be less corruption and that is contributing to the happiness score; additionally I will rename the score as happiness to make it more clear
 
 happy_raw_df.rename(columns= {'Perceptions of corruption': 'Absence of Corruption', 'Score':'Happiness'}, inplace= True)
 
 happy_raw_df
 
-# ### Let us find the max and min of each column to see if there are any data value too high or low to make sense. For example, negative values or a metric score that is higher than the overall score
+##########################
+
+# Let us find the max and min of each column to see if there are any data value too high or low to make sense. For example, negative values or a metric score that is higher than the overall score
 
 happy_raw_df.max(axis= 0)   #the highest value of each column
 
 happy_raw_df.min(axis= 0)    #the lowest value of each column
 
-# #### Note: for the min, the zeros mean that in each column, there is at lease one country where a certain metric contributes nothing to the overall happiness score of a country
+# Note: for the min, the zeros mean that in each column, there is at lease one country where a certain metric contributes nothing to the overall happiness score of a country
+
+
 
 happy_raw_df.describe() #the descriptive statistics of the dataset
 
@@ -81,7 +87,7 @@ zero_metric = happy_raw_df[(happy_raw_df['GDP per capita'] == 0)|
 zero_metric
 
 
-# ### It's very unlikely that any metric contributes nothing to the overall score. Zero values can be explained by standard deviation since the actual numbers can be a little higher or lower. For this reason, I will turn all 0.00 values to NaN to make the dataset slighty more accurate.
+# It's very unlikely that any metric contributes nothing to the overall score. Zero values can be explained by standard deviation since the actual numbers can be a little higher or lower. For this reason, I will turn all 0.00 values to NaN to make the dataset slighty more accurate.
 
 happy_df = happy_raw_df.replace(to_replace= 0, value= np.nan) #replace all zeros in the dataframe with NaN
 happy_df.describe()
